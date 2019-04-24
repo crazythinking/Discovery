@@ -30,41 +30,41 @@ public class DefaultDiscoveryEnabledAdapter extends AbstractDiscoveryEnabledAdap
     protected String getVersionValue(Server server) {
         HttpServletRequest request = zuulStrategyContextHolder.getRequest();
         if (request == null) {
-            String serviceId = server.getMetaInfo().getAppName().toLowerCase();
+            String serviceId = pluginAdapter.getServerServiceId(server);
 
             LOG.warn("The HttpServletRequest object is null, ignore to do version filter for service={}...", serviceId);
 
             return null;
         }
 
-        return request.getHeader(DiscoveryConstant.VERSION);
+        return request.getHeader(DiscoveryConstant.N_D_VERSION);
     }
 
     @Override
     protected String getRegionValue(Server server) {
         HttpServletRequest request = zuulStrategyContextHolder.getRequest();
         if (request == null) {
-            String serviceId = server.getMetaInfo().getAppName().toLowerCase();
+            String serviceId = pluginAdapter.getServerServiceId(server);
 
             LOG.warn("The HttpServletRequest object is null, ignore to do region filter for service={}...", serviceId);
 
             return null;
         }
 
-        return request.getHeader(DiscoveryConstant.REGION);
+        return request.getHeader(DiscoveryConstant.N_D_REGION);
     }
 
     @Override
     protected String getAddressValue(Server server) {
         HttpServletRequest request = zuulStrategyContextHolder.getRequest();
         if (request == null) {
-            String serviceId = server.getMetaInfo().getAppName().toLowerCase();
+            String serviceId = pluginAdapter.getServerServiceId(server);
 
             LOG.warn("The HttpServletRequest object is null, ignore to do region filter for service={}...", serviceId);
 
             return null;
         }
 
-        return request.getHeader(DiscoveryConstant.ADDRESS);
+        return request.getHeader(DiscoveryConstant.N_D_ADDRESS);
     }
 }

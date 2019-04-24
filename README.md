@@ -30,8 +30,11 @@ Nepxion Discovery是一款对Spring Cloud Discovery服务注册发现、Ribbon�
 
 | Spring Cloud版本 | Nepxion Discovery版本 |
 | --- | --- |
-| Finchley | 4.8.3 |
-| Edgware | 3.8.3 |
+| Greenwich | 5.0.0 |
+| Finchley | 4.8.6 |
+| Edgware | 3.8.6 |
+| Dalston | 2.0.11 (不维护，不可用) |
+| Camden | 1.0.1 (不维护，不可用) |
 
 ## 目录
 - [请联系我](#请联系我)
@@ -54,6 +57,7 @@ Nepxion Discovery是一款对Spring Cloud Discovery服务注册发现、Ribbon�
   - [版本访问的灰度发布规则](#版本访问的灰度发布规则)
   - [版本权重的灰度发布规则](#版本权重的灰度发布规则)
   - [区域权重的灰度发布规则](#区域权重的灰度发布规则)
+  - [全链路路由策略的灰度发布规则](#全链路路由策略的灰度发布规则)  
   - [用户自定义的灰度发布规则](#用户自定义的灰度发布规则)
   - [动态改变规则](#动态改变规则)
   - [动态改变版本](#动态改变版本)
@@ -291,7 +295,7 @@ Spring Boot Admin监控平台
 <dependency>
     <groupId>com.nepxion</groupId>
     <artifactId>discovery</artifactId>
-    <version>${discovery.plugin.version}</version>
+    <version>${discovery.version}</version>
     <type>pom</type>
     <scope>import</scope>
 </dependency>
@@ -488,6 +492,14 @@ XML示例（Json示例见discovery-springcloud-example-service下的rule.json）
         </weight>
     </discovery>
 
+    <strategy>
+        <!-- <version>{"discovery-springcloud-example-a":"1.0", "discovery-springcloud-example-b":"1.0", "discovery-springcloud-example-c":"1.0;1.2"}</version> -->
+        <!-- <version>1.0</version> -->
+        <!-- <region>{"discovery-springcloud-example-a":"qa;dev", "discovery-springcloud-example-b":"dev", "discovery-springcloud-example-c":"qa"}</region> -->
+        <!-- <region>dev</region> -->
+        <!-- <address>{"discovery-springcloud-example-a":"192.168.43.101:1100", "discovery-springcloud-example-b":"192.168.43.101:1201", "discovery-springcloud-example-c":"192.168.43.101:1300"}</address> -->
+    </strategy>
+
     <!-- 客户定制化控制，由远程推送客户化参数的改变，实现一些特色化的灰度发布，例如，基于数据库的灰度发布 -->
     <customization>
         <!-- 服务a和c分别有两个库的配置，分别是测试数据库（database的value为qa）和生产数据库（database的value为prod） -->
@@ -545,6 +557,19 @@ XML示例（Json示例见discovery-springcloud-example-service下的rule.json）
     <region provider-weight-value="dev=85;qa=15"/> 表示区域为dev的服务提供85%的权重流量，区域为qa的服务提供15%的权重流量
 2. 区域权重可以切换整条调用链的权重配比
 3. 尽量为线上所有区域都赋予权重值
+```
+
+### 全链路路由策略的灰度发布规则
+```xml
+1. 标准配置，举例如下
+    <strategy>
+        <!-- <version>{"discovery-springcloud-example-a":"1.0", "discovery-springcloud-example-b":"1.0", "discovery-springcloud-example-c":"1.0;1.2"}</version> --> 表示全链路调用中，按照配置的版本号的对应服务去调用
+        <!-- <version>1.0</version> --> 表示全链路调用中，所有服务都调用1.0版本
+        <!-- <region>{"discovery-springcloud-example-a":"qa;dev", "discovery-springcloud-example-b":"dev", "discovery-springcloud-example-c":"qa"}</region> --> 表示全链路调用中，按照配置的区域的对应服务去调用
+        <!-- <region>dev</region> --> 表示全链路调用中，所有服务都调用dev区域的服务
+        <!-- <address>{"discovery-springcloud-example-a":"192.168.43.101:1100", "discovery-springcloud-example-b":"192.168.43.101:1201", "discovery-springcloud-example-c":"192.168.43.101:1300"}</address> --> 表示全链路调用中，按照配置的地址的对应服务去调用
+    </strategy>
+2. 用法和基于Http Header头部传路由参数一致。前置是通过前端或者网关传入，后者是配置在配置文件里。让两者全部启用的时候，以前端或者网关传入Header方式优先
 ```
 
 ### 用户自定义的灰度发布规则
@@ -669,22 +694,22 @@ dev
 不同的服务注册发现组件对应的不同的配置值（region配置可选），请仔细阅读
 ```xml
 # Eureka config for discovery
-eureka.instance.metadataMap.version=1.0
 eureka.instance.metadataMap.group=xxx-service-group
+eureka.instance.metadataMap.version=1.0
 eureka.instance.metadataMap.region=dev
 
 # 奇葩的Consul配置（参考https://springcloud.cc/spring-cloud-consul.html - 元数据和Consul标签）
 # Consul config for discovery
-spring.cloud.consul.discovery.tags=version=1.0,group=xxx-service-group,region=dev
+spring.cloud.consul.discovery.tags=group=xxx-service-group,version=1.0,region=dev
 
 # Zookeeper config for discovery
-spring.cloud.zookeeper.discovery.metadata.version=1.0
 spring.cloud.zookeeper.discovery.metadata.group=xxx-service-group
+spring.cloud.zookeeper.discovery.metadata.version=1.0
 spring.cloud.zookeeper.discovery.metadata.region=dev
 
 # Nacos config for discovery
-spring.cloud.nacos.discovery.metadata.version=1.0
 spring.cloud.nacos.discovery.metadata.group=example-service-group
+spring.cloud.nacos.discovery.metadata.version=1.0
 spring.cloud.nacos.discovery.metadata.region=dev
 
 # Admin config

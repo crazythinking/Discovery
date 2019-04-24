@@ -29,41 +29,41 @@ public class DefaultDiscoveryEnabledAdapter extends AbstractDiscoveryEnabledAdap
     protected String getVersionValue(Server server) {
         ServerWebExchange exchange = gatewayStrategyContextHolder.getExchange();
         if (exchange == null) {
-            String serviceId = server.getMetaInfo().getAppName().toLowerCase();
+            String serviceId = pluginAdapter.getServerServiceId(server);
 
             LOG.warn("The ServerWebExchange object is null, ignore to do version filter for service={}...", serviceId);
 
             return null;
         }
 
-        return exchange.getRequest().getHeaders().getFirst(DiscoveryConstant.VERSION);
+        return exchange.getRequest().getHeaders().getFirst(DiscoveryConstant.N_D_VERSION);
     }
 
     @Override
     protected String getRegionValue(Server server) {
         ServerWebExchange exchange = gatewayStrategyContextHolder.getExchange();
         if (exchange == null) {
-            String serviceId = server.getMetaInfo().getAppName().toLowerCase();
+            String serviceId = pluginAdapter.getServerServiceId(server);
 
             LOG.warn("The ServerWebExchange object is null, ignore to do region filter for service={}...", serviceId);
 
             return null;
         }
 
-        return exchange.getRequest().getHeaders().getFirst(DiscoveryConstant.REGION);
+        return exchange.getRequest().getHeaders().getFirst(DiscoveryConstant.N_D_REGION);
     }
 
     @Override
     protected String getAddressValue(Server server) {
         ServerWebExchange exchange = gatewayStrategyContextHolder.getExchange();
         if (exchange == null) {
-            String serviceId = server.getMetaInfo().getAppName().toLowerCase();
+            String serviceId = pluginAdapter.getServerServiceId(server);
 
             LOG.warn("The ServerWebExchange object is null, ignore to do region filter for service={}...", serviceId);
 
             return null;
         }
 
-        return exchange.getRequest().getHeaders().getFirst(DiscoveryConstant.ADDRESS);
+        return exchange.getRequest().getHeaders().getFirst(DiscoveryConstant.N_D_ADDRESS);
     }
 }
