@@ -1,5 +1,14 @@
 package com.nepxion.discovery.console.context;
 
+/**
+ * <p>Title: Nepxion Discovery</p>
+ * <p>Description: Nepxion Discovery</p>
+ * <p>Copyright: Copyright (c) 2017-2050</p>
+ * <p>Company: Nepxion</p>
+ * @author Haojun Ren
+ * @version 1.0
+ */
+
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -14,7 +23,7 @@ public class ConsoleApplicationContextInitializer implements ApplicationContextI
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
         String applicationContextClassName = applicationContext.getClass().getName();
-        if (applicationContextClassName.endsWith("AnnotationConfigServletWebServerApplicationContext") || applicationContextClassName.endsWith("AnnotationConfigReactiveWebServerApplicationContext")) {
+        if (applicationContextClassName.endsWith(DiscoveryConstant.ANNOTATION_CONFIG_SERVLET_WEB_SERVER_APPLICATION_CONTEXT) || applicationContextClassName.endsWith(DiscoveryConstant.ANNOTATION_CONFIG_REACTIVE_WEB_SERVER_APPLICATION_CONTEXT)) {
             /*String bannerShown = System.getProperty(BannerConstant.BANNER_SHOWN, "true");
             if (Boolean.valueOf(bannerShown)) {
                 System.out.println("");
@@ -33,6 +42,13 @@ public class ConsoleApplicationContextInitializer implements ApplicationContextI
             LogoBanner logoBanner = new LogoBanner(ConsoleApplicationContextInitializer.class, "/com/nepxion/discovery/resource/logo.txt", "Welcome to Nepxion", 9, 5, new Color[] { Color.red, Color.green, Color.cyan, Color.blue, Color.yellow, Color.magenta, Color.red, Color.green, Color.cyan }, true);
 
             NepxionBanner.show(logoBanner, new Description(BannerConstant.VERSION + ":", DiscoveryConstant.DISCOVERY_VERSION, 0, 1), new Description(BannerConstant.PLUGIN + ":", "Console", 0, 1), new Description(BannerConstant.GITHUB + ":", BannerConstant.NEPXION_GITHUB + "/Discovery", 0, 1));
+        }
+
+        if (applicationContextClassName.endsWith(DiscoveryConstant.ANNOTATION_CONFIG_SERVLET_WEB_SERVER_APPLICATION_CONTEXT)) {
+            System.setProperty(DiscoveryConstant.SPRING_APPLICATION_SERVLET_WEB_SERVER_ENABLED, Boolean.toString(true));
+        }
+        if (applicationContextClassName.endsWith(DiscoveryConstant.ANNOTATION_CONFIG_REACTIVE_WEB_SERVER_APPLICATION_CONTEXT)) {
+            System.setProperty(DiscoveryConstant.SPRING_APPLICATION_REACTIVE_WEB_SERVER_ENABLED, Boolean.toString(true));
         }
     }
 }

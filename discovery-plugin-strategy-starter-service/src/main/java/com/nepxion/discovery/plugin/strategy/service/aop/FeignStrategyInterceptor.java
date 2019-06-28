@@ -28,6 +28,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.nepxion.discovery.common.constant.DiscoveryConstant;
 import com.nepxion.discovery.common.util.StringUtil;
+import com.nepxion.discovery.plugin.framework.adapter.PluginAdapter;
 import com.nepxion.discovery.plugin.strategy.service.constant.ServiceStrategyConstant;
 import com.nepxion.discovery.plugin.strategy.service.context.ServiceStrategyContextHolder;
 
@@ -36,6 +37,9 @@ public class FeignStrategyInterceptor implements RequestInterceptor {
 
     @Autowired
     private ConfigurableEnvironment environment;
+
+    @Autowired
+    private PluginAdapter pluginAdapter;
 
     @Autowired
     private ServiceStrategyContextHolder serviceStrategyContextHolder;
@@ -56,12 +60,28 @@ public class FeignStrategyInterceptor implements RequestInterceptor {
         if (!requestHeaderList.contains(DiscoveryConstant.N_D_ADDRESS)) {
             requestHeaderList.add(DiscoveryConstant.N_D_ADDRESS);
         }
+        if (!requestHeaderList.contains(DiscoveryConstant.N_D_VERSION_WEIGHT)) {
+            requestHeaderList.add(DiscoveryConstant.N_D_VERSION_WEIGHT);
+        }
+        if (!requestHeaderList.contains(DiscoveryConstant.N_D_REGION_WEIGHT)) {
+            requestHeaderList.add(DiscoveryConstant.N_D_REGION_WEIGHT);
+        }
         LOG.info("Feign intercepted headers are {}", StringUtils.isNotEmpty(requestHeaders) ? requestHeaders : "empty");
         LOG.info("-------------------------------------------------");
     }
 
     @Override
     public void apply(RequestTemplate requestTemplate) {
+        applyInnerHeader(requestTemplate);
+        applyOuterHeader(requestTemplate);
+    }
+
+    private void applyInnerHeader(RequestTemplate requestTemplate) {
+        requestTemplate.header(DiscoveryConstant.N_D_SERVICE_ID, pluginAdapter.getServiceId());
+        requestTemplate.header(DiscoveryConstant.N_D_GROUP, pluginAdapter.getGroup());
+    }
+
+    private void applyOuterHeader(RequestTemplate requestTemplate) {
         if (CollectionUtils.isEmpty(requestHeaderList)) {
             return;
         }
