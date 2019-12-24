@@ -105,8 +105,40 @@ public class PluginContextAware implements ApplicationContextAware {
         return getConfigPath(environment);
     }
 
+    public String getApplicationName() {
+        return getApplicationName(environment);
+    }
+
+    public String getApplicationType() {
+        return getApplicationType(environment);
+    }
+
     public String getGroupKey() {
         return getGroupKey(environment);
+    }
+
+    public String getDefaultPropertiesPath() {
+        return getDefaultPropertiesPath(environment);
+    }
+
+    public Boolean isGroupGeneratorEnabled() {
+        return isGroupGeneratorEnabled(environment);
+    }
+
+    public Integer getGroupGeneratorLength() {
+        return getGroupGeneratorLength(environment);
+    }
+
+    public Boolean isGitGeneratorEnabled() {
+        return isGitGeneratorEnabled(environment);
+    }
+
+    public String getGitGeneratorPath() {
+        return getGitGeneratorPath(environment);
+    }
+
+    public String getGitVersionKey() {
+        return getGitVersionKey(environment);
     }
 
     public String getContextPath() {
@@ -137,8 +169,36 @@ public class PluginContextAware implements ApplicationContextAware {
         return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_NAME);
     }
 
+    public static String getApplicationType(Environment environment) {
+        return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_TYPE, String.class, DiscoveryConstant.UNKNOWN);
+    }
+
     public static String getGroupKey(Environment environment) {
         return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_GROUP_KEY, String.class, DiscoveryConstant.GROUP);
+    }
+
+    public static String getDefaultPropertiesPath(Environment environment) {
+        return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_DEFAULT_PROPERTIES_PATH, String.class, DiscoveryConstant.SPRING_APPLICATION_DEFAULT_PROPERTIES_PATH_VALUE + "." + DiscoveryConstant.PROPERTIES_FORMAT);
+    }
+
+    public static Boolean isGroupGeneratorEnabled(Environment environment) {
+        return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_GROUP_GENERATOR_ENABLED, Boolean.class, Boolean.FALSE);
+    }
+
+    public static Integer getGroupGeneratorLength(Environment environment) {
+        return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_GROUP_GENERATOR_LENGTH, Integer.class, -1);
+    }
+
+    public static Boolean isGitGeneratorEnabled(Environment environment) {
+        return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_GIT_GENERATOR_ENABLED, Boolean.class, Boolean.FALSE);
+    }
+
+    public static String getGitGeneratorPath(Environment environment) {
+        return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_GIT_GENERATOR_PATH, String.class, DiscoveryConstant.PREFIX_CLASSPATH + DiscoveryConstant.GIT + "." + DiscoveryConstant.PROPERTIES_FORMAT);
+    }
+
+    public static String getGitVersionKey(Environment environment) {
+        return environment.getProperty(DiscoveryConstant.SPRING_APPLICATION_GIT_VERSION_KEY, String.class, "{" + DiscoveryConstant.GIT_COMMIT_ID_ABBREV + "}-{" + DiscoveryConstant.GIT_COMMIT_TIME + "}");
     }
 
     public static String getContextPath(Environment environment) {

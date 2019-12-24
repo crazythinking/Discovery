@@ -24,11 +24,13 @@ import org.slf4j.LoggerFactory;
 
 import com.nepxion.discovery.common.constant.DiscoveryConstant;
 import com.nepxion.discovery.common.entity.CountFilterEntity;
-import com.nepxion.discovery.common.entity.CustomizationEntity;
 import com.nepxion.discovery.common.entity.DiscoveryEntity;
 import com.nepxion.discovery.common.entity.FilterHolderEntity;
 import com.nepxion.discovery.common.entity.FilterType;
 import com.nepxion.discovery.common.entity.HostFilterEntity;
+import com.nepxion.discovery.common.entity.ParameterEntity;
+import com.nepxion.discovery.common.entity.RegionEntity;
+import com.nepxion.discovery.common.entity.RegionFilterEntity;
 import com.nepxion.discovery.common.entity.RegionWeightEntity;
 import com.nepxion.discovery.common.entity.RegisterEntity;
 import com.nepxion.discovery.common.entity.RuleEntity;
@@ -99,16 +101,16 @@ public class XmlConfigParser implements PluginConfigParser {
             throw new DiscoveryException("Allow only one element[" + ConfigConstant.STRATEGY_CUSTOMIZATION_ELEMENT_NAME + "] to be configed");
         }
 
-        int customizationElementCount = element.elements(ConfigConstant.CUSTOMIZATION_ELEMENT_NAME).size();
-        if (customizationElementCount > 1) {
-            throw new DiscoveryException("Allow only one element[" + ConfigConstant.CUSTOMIZATION_ELEMENT_NAME + "] to be configed");
+        int parameterElementCount = element.elements(ConfigConstant.PARAMETER_ELEMENT_NAME).size();
+        if (parameterElementCount > 1) {
+            throw new DiscoveryException("Allow only one element[" + ConfigConstant.PARAMETER_ELEMENT_NAME + "] to be configed");
         }
 
         RegisterEntity registerEntity = null;
         DiscoveryEntity discoveryEntity = null;
         StrategyEntity strategyEntity = null;
         StrategyCustomizationEntity strategyCustomizationEntity = null;
-        CustomizationEntity customizationEntity = null;
+        ParameterEntity parameterEntity = null;
         for (Iterator elementIterator = element.elementIterator(); elementIterator.hasNext();) {
             Object childElementObject = elementIterator.next();
             if (childElementObject instanceof Element) {
@@ -126,9 +128,9 @@ public class XmlConfigParser implements PluginConfigParser {
                 } else if (StringUtils.equals(childElement.getName(), ConfigConstant.STRATEGY_CUSTOMIZATION_ELEMENT_NAME)) {
                     strategyCustomizationEntity = new StrategyCustomizationEntity();
                     parseStrategyCustomization(childElement, strategyCustomizationEntity);
-                } else if (StringUtils.equals(childElement.getName(), ConfigConstant.CUSTOMIZATION_ELEMENT_NAME)) {
-                    customizationEntity = new CustomizationEntity();
-                    parseCustomization(childElement, customizationEntity);
+                } else if (StringUtils.equals(childElement.getName(), ConfigConstant.PARAMETER_ELEMENT_NAME)) {
+                    parameterEntity = new ParameterEntity();
+                    parseParameter(childElement, parameterEntity);
                 }
             }
         }
@@ -138,7 +140,7 @@ public class XmlConfigParser implements PluginConfigParser {
         ruleEntity.setDiscoveryEntity(discoveryEntity);
         ruleEntity.setStrategyEntity(strategyEntity);
         ruleEntity.setStrategyCustomizationEntity(strategyCustomizationEntity);
-        ruleEntity.setCustomizationEntity(customizationEntity);
+        ruleEntity.setParameterEntity(parameterEntity);
         ruleEntity.setContent(config);
 
         LOG.info("Rule content=\n{}", config);
@@ -177,6 +179,8 @@ public class XmlConfigParser implements PluginConfigParser {
                     parseHostFilter(childElement, ConfigConstant.WHITELIST_ELEMENT_NAME, discoveryEntity);
                 } else if (StringUtils.equals(childElement.getName(), ConfigConstant.VERSION_ELEMENT_NAME)) {
                     parseVersionFilter(childElement, discoveryEntity);
+                } else if (StringUtils.equals(childElement.getName(), ConfigConstant.REGION_ELEMENT_NAME)) {
+                    parseRegionFilter(childElement, discoveryEntity);
                 } else if (StringUtils.equals(childElement.getName(), ConfigConstant.WEIGHT_ELEMENT_NAME)) {
                     parseWeightFilter(childElement, discoveryEntity);
                 }
@@ -268,8 +272,8 @@ public class XmlConfigParser implements PluginConfigParser {
     }
 
     @SuppressWarnings("rawtypes")
-    private void parseCustomization(Element element, CustomizationEntity customizationEntity) {
-        Map<String, Map<String, String>> customizationMap = customizationEntity.getCustomizationMap();
+    private void parseParameter(Element element, ParameterEntity parameterEntity) {
+        Map<String, Map<String, String>> parameterMap = parameterEntity.getParameterMap();
         for (Iterator elementIterator = element.elementIterator(); elementIterator.hasNext();) {
             Object childElementObject = elementIterator.next();
             if (childElementObject instanceof Element) {
@@ -294,12 +298,12 @@ public class XmlConfigParser implements PluginConfigParser {
                     }
                     String value = valueAttribute.getData().toString().trim();
 
-                    Map<String, String> customizationParameter = customizationMap.get(serviceName);
-                    if (customizationParameter == null) {
-                        customizationParameter = new LinkedHashMap<String, String>();
-                        customizationMap.put(serviceName, customizationParameter);
+                    Map<String, String> parameter = parameterMap.get(serviceName);
+                    if (parameter == null) {
+                        parameter = new LinkedHashMap<String, String>();
+                        parameterMap.put(serviceName, parameter);
                     }
-                    customizationParameter.put(key, value);
+                    parameter.put(key, value);
                 }
             }
         }
@@ -464,6 +468,66 @@ public class XmlConfigParser implements PluginConfigParser {
         }
 
         discoveryEntity.setVersionFilterEntity(versionFilterEntity);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private void parseRegionFilter(Element element, DiscoveryEntity discoveryEntity) {
+        RegionFilterEntity regionFilterEntity = discoveryEntity.getRegionFilterEntity();
+        if (regionFilterEntity != null) {
+            throw new DiscoveryException("Allow only one element[" + ConfigConstant.REGION_ELEMENT_NAME + "] to be configed");
+        }
+
+        regionFilterEntity = new RegionFilterEntity();
+
+        Map<String, List<RegionEntity>> regionEntityMap = regionFilterEntity.getRegionEntityMap();
+        for (Iterator elementIterator = element.elementIterator(); elementIterator.hasNext();) {
+            Object childElementObject = elementIterator.next();
+            if (childElementObject instanceof Element) {
+                Element childElement = (Element) childElementObject;
+
+                if (StringUtils.equals(childElement.getName(), ConfigConstant.SERVICE_ELEMENT_NAME)) {
+                    RegionEntity regionEntity = new RegionEntity();
+
+                    Attribute consumerServiceNameAttribute = childElement.attribute(ConfigConstant.CONSUMER_SERVICE_NAME_ATTRIBUTE_NAME);
+                    if (consumerServiceNameAttribute == null) {
+                        throw new DiscoveryException("Attribute[" + ConfigConstant.CONSUMER_SERVICE_NAME_ATTRIBUTE_NAME + "] in element[" + childElement.getName() + "] is missing");
+                    }
+                    String consumerServiceName = consumerServiceNameAttribute.getData().toString().trim();
+                    regionEntity.setConsumerServiceName(consumerServiceName);
+
+                    Attribute providerServiceNameAttribute = childElement.attribute(ConfigConstant.PROVIDER_SERVICE_NAME_ATTRIBUTE_NAME);
+                    if (providerServiceNameAttribute == null) {
+                        throw new DiscoveryException("Attribute[" + ConfigConstant.PROVIDER_SERVICE_NAME_ATTRIBUTE_NAME + "] in element[" + childElement.getName() + "] is missing");
+                    }
+                    String providerServiceName = providerServiceNameAttribute.getData().toString().trim();
+                    regionEntity.setProviderServiceName(providerServiceName);
+
+                    Attribute consumerRegionValueAttribute = childElement.attribute(ConfigConstant.CONSUMER_REGION_VALUE_ATTRIBUTE_NAME);
+                    if (consumerRegionValueAttribute != null) {
+                        String consumerRegionValue = consumerRegionValueAttribute.getData().toString().trim();
+                        List<String> consumerRegionValueList = StringUtil.splitToList(consumerRegionValue, DiscoveryConstant.SEPARATE);
+                        regionEntity.setConsumerRegionValueList(consumerRegionValueList);
+                    }
+
+                    Attribute providerRegionValueAttribute = childElement.attribute(ConfigConstant.PROVIDER_REGION_VALUE_ATTRIBUTE_NAME);
+                    if (providerRegionValueAttribute != null) {
+                        String providerRegionValue = providerRegionValueAttribute.getData().toString().trim();
+                        List<String> providerRegionValueList = StringUtil.splitToList(providerRegionValue, DiscoveryConstant.SEPARATE);
+                        regionEntity.setProviderRegionValueList(providerRegionValueList);
+                    }
+
+                    List<RegionEntity> regionEntityList = regionEntityMap.get(consumerServiceName);
+                    if (regionEntityList == null) {
+                        regionEntityList = new ArrayList<RegionEntity>();
+                        regionEntityMap.put(consumerServiceName, regionEntityList);
+                    }
+
+                    regionEntityList.add(regionEntity);
+                }
+            }
+        }
+
+        discoveryEntity.setRegionFilterEntity(regionFilterEntity);
     }
 
     @SuppressWarnings("rawtypes")

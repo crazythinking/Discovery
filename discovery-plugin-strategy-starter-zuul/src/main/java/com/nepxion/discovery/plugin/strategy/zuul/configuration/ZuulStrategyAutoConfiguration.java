@@ -20,9 +20,12 @@ import com.nepxion.discovery.plugin.strategy.adapter.DefaultDiscoveryEnabledAdap
 import com.nepxion.discovery.plugin.strategy.adapter.DiscoveryEnabledAdapter;
 import com.nepxion.discovery.plugin.strategy.constant.StrategyConstant;
 import com.nepxion.discovery.plugin.strategy.wrapper.CallableWrapper;
-import com.nepxion.discovery.plugin.strategy.zuul.constant.ZuulStrategyConstant;
+import com.nepxion.discovery.plugin.strategy.zuul.filter.DefaultZuulStrategyClearFilter;
 import com.nepxion.discovery.plugin.strategy.zuul.filter.DefaultZuulStrategyRouteFilter;
+import com.nepxion.discovery.plugin.strategy.zuul.filter.ZuulStrategyClearFilter;
 import com.nepxion.discovery.plugin.strategy.zuul.filter.ZuulStrategyRouteFilter;
+import com.nepxion.discovery.plugin.strategy.zuul.tracer.DefaultZuulStrategyTracer;
+import com.nepxion.discovery.plugin.strategy.zuul.tracer.ZuulStrategyTracer;
 import com.nepxion.discovery.plugin.strategy.zuul.wrapper.DefaultCallableWrapper;
 
 @Configuration
@@ -31,9 +34,22 @@ import com.nepxion.discovery.plugin.strategy.zuul.wrapper.DefaultCallableWrapper
 public class ZuulStrategyAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = ZuulStrategyConstant.SPRING_APPLICATION_STRATEGY_ZUUL_ROUTE_FILTER_ENABLED, matchIfMissing = true)
     public ZuulStrategyRouteFilter zuulStrategyRouteFilter() {
         return new DefaultZuulStrategyRouteFilter();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = StrategyConstant.SPRING_APPLICATION_STRATEGY_TRACE_ENABLED, matchIfMissing = false) // 只用于调用链
+    public ZuulStrategyClearFilter zuulStrategyClearFilter() {
+        return new DefaultZuulStrategyClearFilter();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = StrategyConstant.SPRING_APPLICATION_STRATEGY_TRACE_ENABLED, matchIfMissing = false)
+    public ZuulStrategyTracer zuulStrategyTracer() {
+        return new DefaultZuulStrategyTracer();
     }
 
     @Bean

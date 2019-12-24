@@ -10,5 +10,5 @@ package com.nepxion.discovery.plugin.framework.constant;
  */
 
 public class ConsulConstant {
-    public static final String DISCOVERY_PLUGIN = "Consul";
+    public static final String CONSUL_TYPE = "Consul";
 }

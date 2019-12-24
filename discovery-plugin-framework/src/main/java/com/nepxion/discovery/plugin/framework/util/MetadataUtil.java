@@ -21,8 +21,8 @@ public class MetadataUtil {
         Properties properties = System.getProperties();
         Set<String> propertyNames = properties.stringPropertyNames();
         for (String propertyName : propertyNames) {
-            if (propertyName.startsWith(DiscoveryConstant.EXT + ".")) {
-                String key = propertyName.substring((DiscoveryConstant.EXT + ".").length());
+            if (propertyName.startsWith(DiscoveryConstant.METADATA + ".")) {
+                String key = propertyName.substring((DiscoveryConstant.METADATA + ".").length());
                 String value = properties.get(propertyName).toString();
                 metadata.put(key, value);
             }
@@ -33,8 +33,8 @@ public class MetadataUtil {
         Properties properties = System.getProperties();
         Set<String> propertyNames = properties.stringPropertyNames();
         for (String propertyName : propertyNames) {
-            if (propertyName.startsWith(DiscoveryConstant.EXT + ".")) {
-                String key = propertyName.substring((DiscoveryConstant.EXT + ".").length());
+            if (propertyName.startsWith(DiscoveryConstant.METADATA + ".")) {
+                String key = propertyName.substring((DiscoveryConstant.METADATA + ".").length());
                 String value = properties.get(propertyName).toString();
 
                 int index = getIndex(metadata, key);
@@ -47,14 +47,24 @@ public class MetadataUtil {
         }
     }
 
-    private static int getIndex(List<String> metadata, String key) {
+    public static int getIndex(List<String> metadata, String key) {
         for (int i = 0; i < metadata.size(); i++) {
-            String result = metadata.get(i);
-            if (result.startsWith(key + "=")) {
+            String value = metadata.get(i);
+            if (value.startsWith(key + "=")) {
                 return i;
             }
         }
 
         return -1;
+    }
+
+    public static boolean containsKey(List<String> metadata, String key) {
+        for (String value : metadata) {
+            if (value.startsWith(key + "=")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -228,15 +228,19 @@ public class RouterTopology extends AbstractTopology {
 
     private String getNodeName(Instance instance) {
         StringBuilder stringBuilder = new StringBuilder();
+        if (StringUtils.isNotEmpty(instance.getServiceType())) {
+            stringBuilder.append(ConsoleLocale.getString("type_" + instance.getServiceType())).append(" - ");
+        }
         stringBuilder.append(instance.getServiceId()).append("\n");
         stringBuilder.append(instance.getHost()).append(":").append(instance.getPort());
-
         if (StringUtils.isNotEmpty(instance.getVersion())) {
             stringBuilder.append("\n [V").append(instance.getVersion()).append("]");
         }
-
         if (StringUtils.isNotEmpty(instance.getRegion())) {
             stringBuilder.append("\n [Region=").append(instance.getRegion()).append("]");
+        }
+        if (StringUtils.isNotEmpty(instance.getEnvironment())) {
+            stringBuilder.append("\n [Env=").append(instance.getEnvironment()).append("]");
         }
 
         return ButtonManager.getHtmlText(stringBuilder.toString());
@@ -244,15 +248,19 @@ public class RouterTopology extends AbstractTopology {
 
     private String getNodeName(RouterEntity routerEntity) {
         StringBuilder stringBuilder = new StringBuilder();
+        if (StringUtils.isNotEmpty(routerEntity.getServiceType())) {
+            stringBuilder.append(ConsoleLocale.getString("type_" + routerEntity.getServiceType())).append(" - ");
+        }
         stringBuilder.append(routerEntity.getServiceId()).append("\n");
         stringBuilder.append(routerEntity.getHost()).append(":").append(routerEntity.getPort());
-
         if (StringUtils.isNotEmpty(routerEntity.getVersion())) {
             stringBuilder.append("\n [V").append(routerEntity.getVersion()).append("]");
         }
-
         if (StringUtils.isNotEmpty(routerEntity.getRegion())) {
             stringBuilder.append("\n [Region=").append(routerEntity.getRegion()).append("]");
+        }
+        if (StringUtils.isNotEmpty(routerEntity.getEnvironment())) {
+            stringBuilder.append("\n [Env=").append(routerEntity.getEnvironment()).append("]");
         }
 
         return ButtonManager.getHtmlText(stringBuilder.toString());

@@ -16,8 +16,8 @@ public class ConfigConstant {
     public static final String REGISTER_ELEMENT_NAME = "register";
     public static final String DISCOVERY_ELEMENT_NAME = "discovery";
     public static final String STRATEGY_ELEMENT_NAME = "strategy";
-    public static final String CUSTOMIZATION_ELEMENT_NAME = "customization";
     public static final String STRATEGY_CUSTOMIZATION_ELEMENT_NAME = "strategy-customization";
+    public static final String PARAMETER_ELEMENT_NAME = "parameter";
     public static final String CONDITIONS_ELEMENT_NAME = "conditions";
     public static final String CONDITION_ELEMENT_NAME = "condition";
     public static final String ROUTES_ELEMENT_NAME = "routes";
@@ -39,6 +39,8 @@ public class ConfigConstant {
     public static final String PROVIDER_SERVICE_NAME_ATTRIBUTE_NAME = "provider-service-name";
     public static final String CONSUMER_VERSION_VALUE_ATTRIBUTE_NAME = "consumer-version-value";
     public static final String PROVIDER_VERSION_VALUE_ATTRIBUTE_NAME = "provider-version-value";
+    public static final String CONSUMER_REGION_VALUE_ATTRIBUTE_NAME = "consumer-region-value";
+    public static final String PROVIDER_REGION_VALUE_ATTRIBUTE_NAME = "provider-region-value";
     public static final String PROVIDER_WEIGHT_VALUE_ATTRIBUTE_NAME = "provider-weight-value";
     public static final String KEY_ATTRIBUTE_NAME = "key";
     public static final String VALUE_ATTRIBUTE_NAME = "value";

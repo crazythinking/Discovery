@@ -23,14 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,18 +40,19 @@ import com.nepxion.discovery.common.constant.DiscoveryConstant;
 import com.nepxion.discovery.common.entity.InstanceEntity;
 import com.nepxion.discovery.common.entity.InstanceEntityWrapper;
 import com.nepxion.discovery.common.entity.UserEntity;
+import com.nepxion.discovery.common.handler.RestErrorHandler;
 import com.nepxion.discovery.console.adapter.ConfigAdapter;
 import com.nepxion.discovery.console.authentication.AuthenticationResource;
 import com.nepxion.discovery.console.rest.ConfigClearRestInvoker;
 import com.nepxion.discovery.console.rest.ConfigUpdateRestInvoker;
+import com.nepxion.discovery.console.rest.SentinelClearRestInvoker;
+import com.nepxion.discovery.console.rest.SentinelUpdateRestInvoker;
 import com.nepxion.discovery.console.rest.VersionClearRestInvoker;
 import com.nepxion.discovery.console.rest.VersionUpdateRestInvoker;
 
 @RestController
 @RequestMapping(path = "/console")
 @Api(tags = { "控制台接口" })
-@RestControllerEndpoint(id = "console")
-@ManagedResource(description = "Console Endpoint")
 public class ConsoleEndpoint {
     private static final Logger LOG = LoggerFactory.getLogger(ConsoleEndpoint.class);
 
@@ -67,15 +65,18 @@ public class ConsoleEndpoint {
     private ConfigAdapter configAdapter;
 
     @Autowired
+    private AuthenticationResource authenticationResource;
+
     private RestTemplate consoleRestTemplate;
 
-    @Autowired
-    private AuthenticationResource authenticationResource;
+    public ConsoleEndpoint() {
+        consoleRestTemplate = new RestTemplate();
+        consoleRestTemplate.setErrorHandler(new RestErrorHandler());
+    }
 
     @RequestMapping(path = "/authenticate", method = RequestMethod.POST)
     @ApiOperation(value = "登录认证", notes = "", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> authenticate(@RequestBody @ApiParam(value = "UserEntity实例", required = true) UserEntity userEntity) {
         return executeAuthenticate(userEntity);
     }
@@ -83,7 +84,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/discovery-type", method = RequestMethod.GET)
     @ApiOperation(value = "获取注册发现中心类型", notes = "", response = ResponseEntity.class, httpMethod = "GET")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> discoveryType() {
         return getDiscoveryType();
     }
@@ -91,7 +91,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/config-type", method = RequestMethod.GET)
     @ApiOperation(value = "获取配置中心类型", notes = "", response = ResponseEntity.class, httpMethod = "GET")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> configType() {
         return getConfigType();
     }
@@ -99,7 +98,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/groups", method = RequestMethod.GET)
     @ApiOperation(value = "获取服务注册中心的服务组名列表", notes = "", response = List.class, httpMethod = "GET")
     @ResponseBody
-    @ManagedOperation
     public List<String> groups() {
         return getGroups();
     }
@@ -107,7 +105,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/services", method = RequestMethod.GET)
     @ApiOperation(value = "获取服务注册中心的服务名列表", notes = "", response = List.class, httpMethod = "GET")
     @ResponseBody
-    @ManagedOperation
     public List<String> services() {
         return getServices();
     }
@@ -115,7 +112,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/instances/{serviceId}", method = RequestMethod.GET)
     @ApiOperation(value = "获取服务注册中心的服务实例列表", notes = "", response = List.class, httpMethod = "GET")
     @ResponseBody
-    @ManagedOperation
     public List<ServiceInstance> instances(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId) {
         return getInstances(serviceId);
     }
@@ -123,7 +119,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/instance-list/{serviceId}", method = RequestMethod.GET)
     @ApiOperation(value = "获取服务注册中心的服务实例列表（精简数据）", notes = "", response = List.class, httpMethod = "GET")
     @ResponseBody
-    @ManagedOperation
     public List<InstanceEntity> instanceList(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId) {
         return getInstanceList(serviceId);
     }
@@ -131,7 +126,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/instance-map", method = RequestMethod.POST)
     @ApiOperation(value = "获取服务注册中心的服务实例的Map（精简数据）", notes = "服务组名列表", response = Map.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public Map<String, List<InstanceEntity>> instanceMap(@RequestBody @ApiParam(value = "服务组名列表，传入空列则可以获取全部服务实例数据", required = true) List<String> groups) {
         return getInstanceMap(groups);
     }
@@ -139,7 +133,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/remote-config/update/{group}/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "推送更新规则配置信息到远程配置中心", notes = "", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> remoteConfigUpdate(@PathVariable(value = "group") @ApiParam(value = "组名", required = true) String group, @PathVariable(value = "serviceId") @ApiParam(value = "服务名。当全局推送模式下，服务名必须由组名来代替", required = true) String serviceId, @RequestBody @ApiParam(value = "规则配置内容，XML格式", required = true) String config) {
         return executeRemoteConfigUpdate(group, serviceId, config);
     }
@@ -147,7 +140,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/remote-config/clear/{group}/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "清除规则配置信息到远程配置中心", notes = "", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> remoteConfigClear(@PathVariable(value = "group") @ApiParam(value = "组名", required = true) String group, @PathVariable(value = "serviceId") @ApiParam(value = "服务名。当全局推送模式下，服务名必须由组名来代替", required = true) String serviceId) {
         return executeRemoteConfigClear(group, serviceId);
     }
@@ -155,7 +147,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/remote-config/view/{group}/{serviceId}", method = RequestMethod.GET)
     @ApiOperation(value = "查看远程配置中心的规则配置信息", notes = "", response = ResponseEntity.class, httpMethod = "GET")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> remoteConfigView(@PathVariable(value = "group") @ApiParam(value = "组名", required = true) String group, @PathVariable(value = "serviceId") @ApiParam(value = "服务名。当全局推送模式下，服务名必须由组名来代替", required = true) String serviceId) {
         return executeRemoteConfigView(group, serviceId);
     }
@@ -163,7 +154,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/config/update-async/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "批量异步推送更新规则配置信息", notes = "", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> configUpdateAsync(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId, @RequestBody @ApiParam(value = "规则配置内容，XML格式", required = true) String config) {
         return executeConfigUpdate(serviceId, config, true);
     }
@@ -171,7 +161,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/config/update-sync/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "批量同步推送更新规则配置信息", notes = "", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> configUpdateSync(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId, @RequestBody @ApiParam(value = "规则配置内容，XML格式", required = true) String config) {
         return executeConfigUpdate(serviceId, config, false);
     }
@@ -179,7 +168,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/config/clear-async/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "批量异步清除更新的规则配置信息", notes = "", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> configClearAsync(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId) {
         return executeConfigClear(serviceId, true);
     }
@@ -187,7 +175,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/config/clear-sync/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "批量同步清除更新的规则配置信息", notes = "", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> configClearSync(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId) {
         return executeConfigClear(serviceId, false);
     }
@@ -195,7 +182,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/version/update-async/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "批量异步更新服务的动态版本", notes = "根据指定的localVersion更新服务的dynamicVersion。如果输入的localVersion不匹配服务的localVersion，则忽略；如果如果输入的localVersion为空，则直接更新服务的dynamicVersion", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> versionUpdateAsync(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId, @RequestBody @ApiParam(value = "版本号，格式为[dynamicVersion]或者[dynamicVersion];[localVersion]", required = true) String version) {
         return executeVersionUpdate(serviceId, version, true);
     }
@@ -203,7 +189,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/version/update-sync/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "批量同步更新服务的动态版本", notes = "根据指定的localVersion更新服务的dynamicVersion。如果输入的localVersion不匹配服务的localVersion，则忽略；如果如果输入的localVersion为空，则直接更新服务的dynamicVersion", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> versionUpdateSync(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId, @RequestBody @ApiParam(value = "版本号，格式为[dynamicVersion]或者[dynamicVersion];[localVersion]", required = true) String version) {
         return executeVersionUpdate(serviceId, version, false);
     }
@@ -211,7 +196,6 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/version/clear-async/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "批量异步清除服务的动态版本", notes = "根据指定的localVersion清除服务的dynamicVersion。如果输入的localVersion不匹配服务的localVersion，则忽略；如果如果输入的localVersion为空，则直接清除服务的dynamicVersion", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> versionClearAsync(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId, @RequestBody(required = false) @ApiParam(value = "版本号，指localVersion，可以为空") String version) {
         return executeVersionClear(serviceId, version, true);
     }
@@ -219,9 +203,22 @@ public class ConsoleEndpoint {
     @RequestMapping(path = "/version/clear-sync/{serviceId}", method = RequestMethod.POST)
     @ApiOperation(value = "批量同步清除服务的动态版本", notes = "根据指定的localVersion清除服务的dynamicVersion。如果输入的localVersion不匹配服务的localVersion，则忽略；如果如果输入的localVersion为空，则直接清除服务的dynamicVersion", response = ResponseEntity.class, httpMethod = "POST")
     @ResponseBody
-    @ManagedOperation
     public ResponseEntity<?> versionClearSync(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId, @RequestBody(required = false) @ApiParam(value = "版本号，指localVersion，可以为空") String version) {
         return executeVersionClear(serviceId, version, false);
+    }
+
+    @RequestMapping(path = "/sentinel/update/{serviceId}/{ruleType}", method = RequestMethod.POST)
+    @ApiOperation(value = "更新哨兵规则列表", notes = "哨兵规则类型取值： flow | degrade | authority | system | param-flow", response = ResponseEntity.class, httpMethod = "POST")
+    @ResponseBody
+    public ResponseEntity<?> sentinelUpdate(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId, @PathVariable(value = "ruleType") @ApiParam(value = "哨兵规则类型", required = true) String ruleType, @RequestBody @ApiParam(value = "哨兵规则内容，JSON格式", required = true) String rule) {
+        return executeSentinelUpdate(serviceId, ruleType, rule);
+    }
+
+    @RequestMapping(path = "/sentinel/clear/{serviceId}/{ruleType}", method = RequestMethod.POST)
+    @ApiOperation(value = "清除哨兵规则列表", notes = "哨兵规则类型取值： flow | degrade | authority | system | param-flow", response = ResponseEntity.class, httpMethod = "POST")
+    @ResponseBody
+    public ResponseEntity<?> sentinelClear(@PathVariable(value = "serviceId") @ApiParam(value = "服务名", required = true) String serviceId, @PathVariable(value = "ruleType") @ApiParam(value = "哨兵规则类型", required = true) String ruleType) {
+        return executeSentinelClear(serviceId, ruleType);
     }
 
     private ResponseEntity<?> executeAuthenticate(UserEntity userEntity) {
@@ -302,15 +299,19 @@ public class ConsoleEndpoint {
         for (ServiceInstance serviceInstance : serviceInstances) {
             Map<String, String> metadata = serviceInstance.getMetadata();
             String serviceId = serviceInstance.getServiceId().toLowerCase();
+            String serviceType = metadata.get(DiscoveryConstant.SPRING_APPLICATION_TYPE);
             String version = metadata.get(DiscoveryConstant.VERSION);
             String region = metadata.get(DiscoveryConstant.REGION);
+            String environment = metadata.get(DiscoveryConstant.ENVIRONMENT);
             String host = serviceInstance.getHost();
             int port = serviceInstance.getPort();
 
             InstanceEntity instanceEntity = new InstanceEntity();
+            instanceEntity.setServiceType(serviceType);
             instanceEntity.setServiceId(serviceId);
             instanceEntity.setVersion(version);
             instanceEntity.setRegion(region);
+            instanceEntity.setEnvironment(environment);
             instanceEntity.setHost(host);
             instanceEntity.setPort(port);
             instanceEntity.setMetadata(metadata);
@@ -425,5 +426,21 @@ public class ConsoleEndpoint {
         VersionClearRestInvoker versionClearRestInvoker = new VersionClearRestInvoker(serviceInstances, consoleRestTemplate, version, async);
 
         return versionClearRestInvoker.invoke();
+    }
+
+    private ResponseEntity<?> executeSentinelUpdate(String serviceId, String ruleType, String rule) {
+        List<ServiceInstance> serviceInstances = getInstances(serviceId);
+
+        SentinelUpdateRestInvoker sentinelUpdateRestInvoker = new SentinelUpdateRestInvoker(serviceInstances, consoleRestTemplate, ruleType, rule);
+
+        return sentinelUpdateRestInvoker.invoke();
+    }
+
+    private ResponseEntity<?> executeSentinelClear(String serviceId, String ruleType) {
+        List<ServiceInstance> serviceInstances = getInstances(serviceId);
+
+        SentinelClearRestInvoker sentinelClearRestInvoker = new SentinelClearRestInvoker(serviceInstances, consoleRestTemplate, ruleType);
+
+        return sentinelClearRestInvoker.invoke();
     }
 }

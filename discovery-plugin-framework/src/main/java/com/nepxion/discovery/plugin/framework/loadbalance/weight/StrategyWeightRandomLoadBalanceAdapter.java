@@ -13,7 +13,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.nepxion.discovery.common.constant.DiscoveryConstant;
 import com.nepxion.discovery.common.entity.RegionWeightEntity;
 import com.nepxion.discovery.common.entity.VersionWeightEntity;
 import com.nepxion.discovery.common.entity.WeightEntity;
@@ -30,9 +29,13 @@ public class StrategyWeightRandomLoadBalanceAdapter extends AbstractWeightRandom
 
     @Override
     public WeightFilterEntity getT() {
+        if (pluginContextHolder == null) {
+            return null;
+        }
+
         WeightFilterEntity weightFilterEntity = new WeightFilterEntity();
 
-        String versionWeightValue = pluginContextHolder.getContext(DiscoveryConstant.N_D_VERSION_WEIGHT);
+        String versionWeightValue = pluginContextHolder.getContextRouteVersionWeight();
         if (StringUtils.isNotEmpty(versionWeightValue)) {
             try {
                 List<WeightEntity> weightEntityList = WeightEntityWrapper.parseWeightEntityList(versionWeightValue);
@@ -46,7 +49,7 @@ public class StrategyWeightRandomLoadBalanceAdapter extends AbstractWeightRandom
             }
         }
 
-        String regionWeightValue = pluginContextHolder.getContext(DiscoveryConstant.N_D_REGION_WEIGHT);
+        String regionWeightValue = pluginContextHolder.getContextRouteRegionWeight();
         if (StringUtils.isNotEmpty(regionWeightValue)) {
             try {
                 List<WeightEntity> weightEntityList = WeightEntityWrapper.parseWeightEntityList(regionWeightValue);
@@ -65,33 +68,10 @@ public class StrategyWeightRandomLoadBalanceAdapter extends AbstractWeightRandom
 
     @Override
     public int getWeight(Server server, WeightFilterEntity weightFilterEntity) {
-        List<WeightEntity> versionWeightEntityList = weightFilterEntity.getVersionWeightEntityList();
-        VersionWeightEntity versionWeightEntity = weightFilterEntity.getVersionWeightEntity();
-
-        List<WeightEntity> regionWeightEntityList = weightFilterEntity.getRegionWeightEntityList();
-        RegionWeightEntity regionWeightEntity = weightFilterEntity.getRegionWeightEntity();
-
         String providerServiceId = pluginAdapter.getServerServiceId(server);
         String providerVersion = pluginAdapter.getServerVersion(server);
         String providerRegion = pluginAdapter.getServerRegion(server);
 
-        int weight = WeightEntityWrapper.getWeight(providerServiceId, providerVersion, versionWeightEntityList);
-        if (weight < 0) {
-            weight = WeightEntityWrapper.getWeight(providerVersion, versionWeightEntity);
-        }
-
-        if (weight < 0) {
-            weight = WeightEntityWrapper.getWeight(providerServiceId, providerRegion, regionWeightEntityList);
-        }
-        if (weight < 0) {
-            weight = WeightEntityWrapper.getWeight(providerRegion, regionWeightEntity);
-        }
-
-        // 所有的权重配置都没找到，则按权重值为0来处理
-        if (weight < 0) {
-            weight = 0;
-        }
-
-        return weight;
+        return WeightEntityWrapper.getWeight(weightFilterEntity, providerServiceId, providerVersion, providerRegion, null);
     }
 }

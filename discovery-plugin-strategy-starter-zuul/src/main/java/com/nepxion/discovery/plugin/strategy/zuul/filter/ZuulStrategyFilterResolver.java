@@ -15,6 +15,10 @@ import com.netflix.zuul.context.RequestContext;
 
 public class ZuulStrategyFilterResolver {
     public static void setHeader(String headerName, String headerValue, Boolean zuulHeaderPriority) {
+        if (StringUtils.isEmpty(headerValue)) {
+            return;
+        }
+
         RequestContext context = RequestContext.getCurrentContext();
 
         if (zuulHeaderPriority) {
@@ -26,6 +30,15 @@ public class ZuulStrategyFilterResolver {
             if (StringUtils.isEmpty(header)) {
                 context.addZuulRequestHeader(headerName, headerValue);
             }
+        }
+    }
+
+    public static void ignoreHeader(String headerName, Boolean zuulHeaderPriority, Boolean zuulOriginalHeaderIgnored) {
+        if (zuulHeaderPriority && zuulOriginalHeaderIgnored) {
+            RequestContext context = RequestContext.getCurrentContext();
+
+            // 通过Zuul Filter的Header直接把外界的Header替换成空字符串，并传递
+            context.addZuulRequestHeader(headerName, null);
         }
     }
 }

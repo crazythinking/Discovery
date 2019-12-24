@@ -9,7 +9,7 @@ package com.nepxion.discovery.plugin.strategy.gateway.filter;
  * @version 1.0
  */
 
-public interface GatewayStrategyRouteFilter {
+public interface GatewayStrategyRouteFilter extends GatewayStrategyFilter {
     String getRouteVersion();
 
     String getRouteRegion();

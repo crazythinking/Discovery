@@ -14,14 +14,19 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.nepxion.discovery.plugin.strategy.context.AbstractStrategyContextHolder;
+import com.nepxion.discovery.plugin.strategy.service.filter.ServiceStrategyRouteFilter;
 
 public class ServiceStrategyContextHolder extends AbstractStrategyContextHolder {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceStrategyContextHolder.class);
+
+    @Autowired
+    private ServiceStrategyRouteFilter serviceStrategyRouteFilter;
 
     public ServletRequestAttributes getRestAttributes() {
         RequestAttributes requestAttributes = RestStrategyContext.getCurrentContext().getRequestAttributes();
@@ -40,11 +45,36 @@ public class ServiceStrategyContextHolder extends AbstractStrategyContextHolder 
     public String getHeader(String name) {
         ServletRequestAttributes attributes = getRestAttributes();
         if (attributes == null) {
-            LOG.warn("The ServletRequestAttributes object is null");
+            LOG.warn("The ServletRequestAttributes object is lost for thread switched probably");
 
             return null;
         }
 
         return attributes.getRequest().getHeader(name);
+    }
+
+    @Override
+    public String getRouteVersion() {
+        return serviceStrategyRouteFilter.getRouteVersion();
+    }
+
+    @Override
+    public String getRouteRegion() {
+        return serviceStrategyRouteFilter.getRouteRegion();
+    }
+
+    @Override
+    public String getRouteAddress() {
+        return serviceStrategyRouteFilter.getRouteAddress();
+    }
+
+    @Override
+    public String getRouteVersionWeight() {
+        return serviceStrategyRouteFilter.getRouteVersionWeight();
+    }
+
+    @Override
+    public String getRouteRegionWeight() {
+        return serviceStrategyRouteFilter.getRouteRegionWeight();
     }
 }

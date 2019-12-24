@@ -11,6 +11,7 @@ package com.nepxion.discovery.plugin.framework.context;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.cloud.netflix.eureka.EurekaInstanceConfigBean;
 import org.springframework.cloud.netflix.eureka.serviceregistry.EurekaServiceRegistry;
@@ -35,17 +36,38 @@ public class EurekaApplicationContextInitializer extends PluginApplicationContex
             EurekaInstanceConfigBean eurekaInstanceConfig = (EurekaInstanceConfigBean) bean;
             eurekaInstanceConfig.setPreferIpAddress(true);
 
-            Map<String, String> metadataMap = eurekaInstanceConfig.getMetadataMap();
-            metadataMap.put(DiscoveryConstant.SPRING_APPLICATION_NAME, PluginContextAware.getApplicationName(environment));
-            metadataMap.put(DiscoveryConstant.SPRING_APPLICATION_DISCOVERY_PLUGIN, EurekaConstant.DISCOVERY_PLUGIN);
-            metadataMap.put(DiscoveryConstant.SPRING_APPLICATION_DISCOVERY_VERSION, DiscoveryConstant.DISCOVERY_VERSION);
-            metadataMap.put(DiscoveryConstant.SPRING_APPLICATION_REGISTER_CONTROL_ENABLED, PluginContextAware.isRegisterControlEnabled(environment).toString());
-            metadataMap.put(DiscoveryConstant.SPRING_APPLICATION_DISCOVERY_CONTROL_ENABLED, PluginContextAware.isDiscoveryControlEnabled(environment).toString());
-            metadataMap.put(DiscoveryConstant.SPRING_APPLICATION_CONFIG_REST_CONTROL_ENABLED, PluginContextAware.isConfigRestControlEnabled(environment).toString());
-            metadataMap.put(DiscoveryConstant.SPRING_APPLICATION_GROUP_KEY, PluginContextAware.getGroupKey(environment));
-            metadataMap.put(DiscoveryConstant.SPRING_APPLICATION_CONTEXT_PATH, PluginContextAware.getContextPath(environment));
+            Map<String, String> metadata = eurekaInstanceConfig.getMetadataMap();
 
-            MetadataUtil.filter(metadataMap);
+            String groupKey = PluginContextAware.getGroupKey(environment);
+            if (!metadata.containsKey(groupKey)) {
+                metadata.put(groupKey, DiscoveryConstant.DEFAULT);
+            }
+            if (!metadata.containsKey(DiscoveryConstant.VERSION)) {
+                metadata.put(DiscoveryConstant.VERSION, DiscoveryConstant.DEFAULT);
+            }
+            if (!metadata.containsKey(DiscoveryConstant.REGION)) {
+                metadata.put(DiscoveryConstant.REGION, DiscoveryConstant.DEFAULT);
+            }
+            String prefixGroup = getPrefixGroup(applicationContext);
+            if (StringUtils.isNotEmpty(prefixGroup)) {
+                metadata.put(groupKey, prefixGroup);
+            }
+            String gitVersion = getGitVersion(applicationContext);
+            if (StringUtils.isNotEmpty(gitVersion)) {
+                metadata.put(DiscoveryConstant.VERSION, gitVersion);
+            }
+
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_NAME, PluginContextAware.getApplicationName(environment));
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_TYPE, PluginContextAware.getApplicationType(environment));
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_DISCOVERY_PLUGIN, EurekaConstant.EUREKA_TYPE);
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_DISCOVERY_VERSION, DiscoveryConstant.DISCOVERY_VERSION);
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_REGISTER_CONTROL_ENABLED, PluginContextAware.isRegisterControlEnabled(environment).toString());
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_DISCOVERY_CONTROL_ENABLED, PluginContextAware.isDiscoveryControlEnabled(environment).toString());
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_CONFIG_REST_CONTROL_ENABLED, PluginContextAware.isConfigRestControlEnabled(environment).toString());
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_GROUP_KEY, groupKey);
+            metadata.put(DiscoveryConstant.SPRING_APPLICATION_CONTEXT_PATH, PluginContextAware.getContextPath(environment));
+
+            MetadataUtil.filter(metadata);
 
             return bean;
         } else {

@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.nepxion.discovery.common.constant.DiscoveryConstant;
 import com.nepxion.discovery.plugin.framework.adapter.PluginAdapter;
 import com.nepxion.discovery.plugin.strategy.adapter.DiscoveryEnabledStrategy;
 import com.nepxion.discovery.plugin.strategy.service.constant.ServiceStrategyConstant;
@@ -28,10 +27,10 @@ public class MyDiscoveryEnabledStrategy implements DiscoveryEnabledStrategy {
     private static final Logger LOG = LoggerFactory.getLogger(MyDiscoveryEnabledStrategy.class);
 
     @Autowired
-    private ServiceStrategyContextHolder serviceStrategyContextHolder;
+    private PluginAdapter pluginAdapter;
 
     @Autowired
-    private PluginAdapter pluginAdapter;
+    private ServiceStrategyContextHolder serviceStrategyContextHolder;
 
     @Override
     public boolean apply(Server server) {
@@ -45,14 +44,16 @@ public class MyDiscoveryEnabledStrategy implements DiscoveryEnabledStrategy {
         return applyFromMethod(server);
     }
 
-    // 根据Rest调用传来的Header参数（例如：token），选取执行调用请求的服务实例
+    // 根据REST调用传来的Header参数（例如：token），选取执行调用请求的服务实例
     private boolean applyFromHeader(Server server) {
         String token = serviceStrategyContextHolder.getHeader("token");
         String serviceId = pluginAdapter.getServerServiceId(server);
-        String version = pluginAdapter.getServerMetadata(server).get(DiscoveryConstant.VERSION);
-        String region = pluginAdapter.getServerMetadata(server).get(DiscoveryConstant.REGION);
+        String version = pluginAdapter.getServerVersion(server);
+        String region = pluginAdapter.getServerRegion(server);
+        String environment = pluginAdapter.getServerEnvironment(server);
+        String address = server.getHostPort();
 
-        LOG.info("负载均衡用户定制触发：token={}, serviceId={}, version={}, region={}", token, serviceId, version, region);
+        LOG.info("负载均衡用户定制触发：token={}, serviceId={}, version={}, region={}, env={}, address={}", token, serviceId, version, region, environment, address);
 
         String filterServiceId = "discovery-springcloud-example-c";
         String filterToken = "123";
@@ -70,10 +71,12 @@ public class MyDiscoveryEnabledStrategy implements DiscoveryEnabledStrategy {
     private boolean applyFromMethod(Server server) {
         Map<String, Object> attributes = serviceStrategyContextHolder.getRpcAttributes();
         String serviceId = pluginAdapter.getServerServiceId(server);
-        String version = pluginAdapter.getServerMetadata(server).get(DiscoveryConstant.VERSION);
-        String region = pluginAdapter.getServerMetadata(server).get(DiscoveryConstant.REGION);
+        String version = pluginAdapter.getServerVersion(server);
+        String region = pluginAdapter.getServerRegion(server);
+        String environment = pluginAdapter.getServerEnvironment(server);
+        String address = server.getHostPort();
 
-        LOG.info("负载均衡用户定制触发：attributes={}, serviceId={}, version={}, region={}", attributes, serviceId, version, region);
+        LOG.info("负载均衡用户定制触发：attributes={}, serviceId={}, version={}, region={}, env={}, address={}", attributes, serviceId, version, region, environment, address);
 
         String filterServiceId = "discovery-springcloud-example-b";
         String filterVersion = "1.0";

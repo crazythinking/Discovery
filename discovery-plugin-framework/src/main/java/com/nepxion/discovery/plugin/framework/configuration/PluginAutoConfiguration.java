@@ -14,19 +14,27 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.nepxion.discovery.common.constant.DiscoveryConstant;
+import com.nepxion.discovery.plugin.framework.adapter.DefaultEnvironmentRouteAdapter;
+import com.nepxion.discovery.plugin.framework.adapter.EnvironmentRouteAdapter;
 import com.nepxion.discovery.plugin.framework.cache.PluginCache;
 import com.nepxion.discovery.plugin.framework.cache.RuleCache;
-import com.nepxion.discovery.plugin.framework.constant.PluginConstant;
 import com.nepxion.discovery.plugin.framework.context.PluginContextAware;
 import com.nepxion.discovery.plugin.framework.event.PluginEventWapper;
 import com.nepxion.discovery.plugin.framework.event.PluginPublisher;
 import com.nepxion.discovery.plugin.framework.event.PluginSubscriber;
+import com.nepxion.discovery.plugin.framework.generator.GitGenerator;
+import com.nepxion.discovery.plugin.framework.generator.GroupGenerator;
 import com.nepxion.discovery.plugin.framework.listener.discovery.DiscoveryListenerExecutor;
+import com.nepxion.discovery.plugin.framework.listener.discovery.EnvironmentFilterDiscoveryListener;
 import com.nepxion.discovery.plugin.framework.listener.discovery.HostFilterDiscoveryListener;
+import com.nepxion.discovery.plugin.framework.listener.discovery.RegionFilterDiscoveryListener;
 import com.nepxion.discovery.plugin.framework.listener.discovery.VersionFilterDiscoveryListener;
+import com.nepxion.discovery.plugin.framework.listener.loadbalance.EnvironmentFilterLoadBalanceListener;
 import com.nepxion.discovery.plugin.framework.listener.loadbalance.HostFilterLoadBalanceListener;
 import com.nepxion.discovery.plugin.framework.listener.loadbalance.LoadBalanceListenerExecutor;
 import com.nepxion.discovery.plugin.framework.listener.loadbalance.NotificationLoadBalanceListener;
+import com.nepxion.discovery.plugin.framework.listener.loadbalance.RegionFilterLoadBalanceListener;
 import com.nepxion.discovery.plugin.framework.listener.loadbalance.VersionFilterLoadBalanceListener;
 import com.nepxion.discovery.plugin.framework.listener.register.CountFilterRegisterListener;
 import com.nepxion.discovery.plugin.framework.listener.register.HostFilterRegisterListener;
@@ -102,6 +110,18 @@ public class PluginAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = DiscoveryConstant.SPRING_APPLICATION_ENVIRONMENT_ISOLATION_ENABLED, matchIfMissing = false)
+    public EnvironmentFilterDiscoveryListener environmentFilterDiscoveryListener() {
+        return new EnvironmentFilterDiscoveryListener();
+    }
+
+    @Bean
+    public RegionFilterDiscoveryListener regionFilterDiscoveryListener() {
+        return new RegionFilterDiscoveryListener();
+    }
+
+    @Bean
     public HostFilterLoadBalanceListener hostFilterLoadBalanceListener() {
         return new HostFilterLoadBalanceListener();
     }
@@ -112,9 +132,42 @@ public class PluginAutoConfiguration {
     }
 
     @Bean
+    public RegionFilterLoadBalanceListener regionFilterLoadBalanceListener() {
+        return new RegionFilterLoadBalanceListener();
+    }
+
+    @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = PluginConstant.SPRING_APPLICATION_NO_SERVER_FOUND_NOTIFICATION_ENABLED, matchIfMissing = false)
+    @ConditionalOnProperty(value = DiscoveryConstant.SPRING_APPLICATION_NO_SERVERS_NOTIFY_ENABLED, matchIfMissing = false)
     public NotificationLoadBalanceListener notificationLoadBalanceListener() {
         return new NotificationLoadBalanceListener();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = DiscoveryConstant.SPRING_APPLICATION_ENVIRONMENT_ISOLATION_ENABLED, matchIfMissing = false)
+    public EnvironmentFilterLoadBalanceListener environmentFilterLoadBalanceListener() {
+        return new EnvironmentFilterLoadBalanceListener();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = DiscoveryConstant.SPRING_APPLICATION_ENVIRONMENT_ISOLATION_ENABLED, matchIfMissing = false)
+    public EnvironmentRouteAdapter environmentRouteAdapter() {
+        return new DefaultEnvironmentRouteAdapter();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = DiscoveryConstant.SPRING_APPLICATION_GROUP_GENERATOR_ENABLED, matchIfMissing = false)
+    public GroupGenerator groupGenerator() {
+        return new GroupGenerator();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = DiscoveryConstant.SPRING_APPLICATION_GIT_GENERATOR_ENABLED, matchIfMissing = false)
+    public GitGenerator gitGenerator() {
+        return new GitGenerator();
     }
 }

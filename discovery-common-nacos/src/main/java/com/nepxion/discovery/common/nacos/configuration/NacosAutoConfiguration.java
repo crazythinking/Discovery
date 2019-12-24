@@ -32,6 +32,17 @@ public class NacosAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ConfigService nacosConfigService() throws NacosException {
+        Properties properties = createNacosProperties(environment, true);
+
+        return NacosFactory.createConfigService(properties);
+    }
+
+    @Bean
+    public NacosOperation nacosOperation() {
+        return new NacosOperation();
+    }
+
+    public static Properties createNacosProperties(Environment environment, boolean enableRemoteSyncConfig) {
         Properties properties = new Properties();
 
         String serverAddr = environment.getProperty(NacosConstant.NACOS_SERVER_ADDR);
@@ -66,6 +77,21 @@ public class NacosAutoConfiguration {
             properties.put(NacosConstant.CONTEXT_PATH, contextPath);
         }
 
+        String configLongPollTimeout = environment.getProperty(NacosConstant.NACOS_PLUGIN_CONFIG_LONG_POLL_TIMEOUT);
+        if (StringUtils.isNotEmpty(configLongPollTimeout)) {
+            properties.put(NacosConstant.CONFIG_LONG_POLL_TIMEOUT, configLongPollTimeout);
+        }
+
+        String configRetryTime = environment.getProperty(NacosConstant.NACOS_PLUGIN_CONFIG_RETRY_TIME);
+        if (StringUtils.isNotEmpty(configRetryTime)) {
+            properties.put(NacosConstant.CONFIG_RETRY_TIME, configRetryTime);
+        }
+
+        String maxRetry = environment.getProperty(NacosConstant.NACOS_PLUGIN_MAX_RETRY);
+        if (StringUtils.isNotEmpty(maxRetry)) {
+            properties.put(NacosConstant.MAX_RETRY, maxRetry);
+        }
+
         String endpoint = environment.getProperty(NacosConstant.NACOS_PLUGIN_ENDPOINT);
         if (StringUtils.isNotEmpty(endpoint)) {
             properties.put(NacosConstant.ENDPOINT, endpoint);
@@ -79,6 +105,11 @@ public class NacosAutoConfiguration {
         String isUseEndpointParsingRule = environment.getProperty(NacosConstant.NACOS_PLUGIN_IS_USE_ENDPOINT_PARSING_RULE);
         if (StringUtils.isNotEmpty(isUseEndpointParsingRule)) {
             properties.put(NacosConstant.IS_USE_ENDPOINT_PARSING_RULE, isUseEndpointParsingRule);
+        }
+
+        String isUseCloudNamespaceParsing = environment.getProperty(NacosConstant.NACOS_PLUGIN_IS_USE_CLOUD_NAMESPACE_PARSING);
+        if (StringUtils.isNotEmpty(isUseCloudNamespaceParsing)) {
+            properties.put(NacosConstant.IS_USE_CLOUD_NAMESPACE_PARSING, isUseCloudNamespaceParsing);
         }
 
         String encode = environment.getProperty(NacosConstant.NACOS_PLUGIN_ENCODE);
@@ -106,11 +137,8 @@ public class NacosAutoConfiguration {
             properties.put(NacosConstant.RAM_ROLE_NAME, ramRoleName);
         }
 
-        return NacosFactory.createConfigService(properties);
-    }
+        properties.put(NacosConstant.ENABLE_REMOTE_SYNC_CONFIG, Boolean.toString(enableRemoteSyncConfig));
 
-    @Bean
-    public NacosOperation nacosOperation() {
-        return new NacosOperation();
+        return properties;
     }
 }
